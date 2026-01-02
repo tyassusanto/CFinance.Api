@@ -1,0 +1,93 @@
+
+PS \.NET\CFinance.Api> dotnet ef database drop `
+>>   --project CFinance.Infrastructure `
+>>   --startup-project CFinance.Api
+Build started...
+Build succeeded.
+Are you sure you want to drop the database 'cfinance_db' on server 'tcp://localhost:5432'? (y/N)
+y
+Dropping database 'cfinance_db' on server 'tcp://localhost:5432'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (184ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP DATABASE cfinance_db WITH (FORCE);
+Successfully dropped database 'cfinance_db'.
+PS \.NET\CFinance.Api> dotnet ef migrations add InitialCreate `
+>>   --project CFinance.Infrastructure `
+>>   --startup-project CFinance.Api `
+>>   --output-dir Persistence/Migrations
+Build started...
+Build succeeded.
+Done. To undo this action, use 'ef migrations remove'
+PS \.NET\CFinance.Api> dotnet ef database update `
+>>   --project CFinance.Infrastructure `
+>>   --startup-project CFinance.Api
+Build started...
+Build succeeded.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (455ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE DATABASE cfinance_db;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "__EFMigrationsHistory" (
+          "MigrationId" character varying(150) NOT NULL,
+          "ProductVersion" character varying(32) NOT NULL,
+          CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (39ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND
+          c.relname='__EFMigrationsHistory'
+)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "MigrationId", "ProductVersion"
+      FROM "__EFMigrationsHistory"
+      ORDER BY "MigrationId";
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260102161212_InitialCreate'.
+Applying migration '20260102161212_InitialCreate'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "Users" (
+          "Id" uuid NOT NULL,
+          "Email" text NOT NULL,
+          "PasswordHash" text NOT NULL,
+          "Role" integer NOT NULL,
+          "Balance" numeric NOT NULL,
+          CONSTRAINT "PK_Users" PRIMARY KEY ("Id")
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "Budgets" (
+          "Id" uuid NOT NULL,
+          "UserId" uuid NOT NULL,
+          "Amount" numeric NOT NULL,
+          "CreatedAt" timestamp with time zone NOT NULL,
+          CONSTRAINT "PK_Budgets" PRIMARY KEY ("Id"),
+          CONSTRAINT "FK_Budgets_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("Id") ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "Reimbursements" (
+          "Id" uuid NOT NULL,
+          "UserId" uuid NOT NULL,
+          "Amount" numeric NOT NULL,
+          "Description" text NOT NULL,
+          "Status" integer NOT NULL,
+          "CreatedAt" timestamp with time zone NOT NULL,
+          CONSTRAINT "PK_Reimbursements" PRIMARY KEY ("Id"),
+          CONSTRAINT "FK_Reimbursements_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("Id") ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_Budgets_UserId" ON "Budgets" ("UserId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_Reimbursements_UserId" ON "Reimbursements" ("UserId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20260102161212_InitialCreate', '8.0.11');
