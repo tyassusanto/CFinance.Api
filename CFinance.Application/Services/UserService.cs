@@ -1,3 +1,4 @@
+using CFinance.Application.Common.Exceptions;
 using CFinance.Application.DTOs.User;
 using CFinance.Application.Interfaces.Repositories;
 using CFinance.Application.Interfaces.Services;
@@ -9,6 +10,7 @@ namespace CFinance.Application.Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _repo;
+
 
     public UserService(IUserRepository repo)
     {
@@ -39,5 +41,20 @@ public class UserService : IUserService
             Email = user.Email,
             Role = user.Role.ToString()
         };
+    }
+    public async Task AddBalanceAsync(Guid financeUserId, Guid targetUserId, decimal amount)
+    {
+        var finance = await _repo.GetByIdAsync(financeUserId)
+            ?? throw new NotFoundException("Finance user not found");
+
+        if (finance.Role != UserRole.Finance && finance.Role != UserRole.Admin)
+            throw new BusinessException("Unauthorized");
+
+        var user = await _repo.GetByIdAsync(targetUserId)
+            ?? throw new NotFoundException("Target user not found");
+
+        user.AddBalance(amount);
+
+        await _repo.UpdateAsync(user);
     }
 }

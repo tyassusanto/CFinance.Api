@@ -12,7 +12,7 @@ public class ReimbursementService : IReimbursementService
 {
     private readonly IReimbursementRepository _reimbursementRepo;
     private readonly IUserRepository _userRepo;
-    
+
     private readonly IBudgetRepository _budgetRepo;
     private readonly IUnitOfWork _uow;
 
@@ -25,7 +25,7 @@ public class ReimbursementService : IReimbursementService
         _reimbursementRepo = reimbursementRepo;
         _userRepo = userRepo;
         _uow = uow;
-        _budgetRepo = budgetRepo; 
+        _budgetRepo = budgetRepo;
     }
 
     public async Task<List<ReimbursementResponse>> GetAllAsync(ReimbursementStatus? status)
@@ -71,14 +71,15 @@ public class ReimbursementService : IReimbursementService
             if (reimbursement.Status != ReimbursementStatus.Pending)
                 throw new BusinessException("Invalid reimbursement state");
 
-            var user = await _userRepo.GetByIdAsync(reimbursement.UserId)
-                ?? throw new NotFoundException("User not found");
+            var budget = await _budgetRepo.GetActiveByUserIdAsync(reimbursement.UserId)
+                ?? throw new BusinessException("Budget not set");
+
+            budget.Reduce(reimbursement.Amount);
 
             reimbursement.Approve();
-            user.DeductBalance(reimbursement.Amount);
 
+            await _budgetRepo.UpdateAsync(budget);
             await _reimbursementRepo.UpdateAsync(reimbursement);
-            await _userRepo.UpdateAsync(user);
 
             await _uow.CommitAsync();
         }

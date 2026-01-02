@@ -20,4 +20,11 @@ public class User
 
         Balance -= amount;
     }
+    public void AddBalance(decimal amount)
+    {
+        if (amount <= 0)
+            throw new Exception("Invalid amount");
+
+        Balance += amount;
+    }
 }

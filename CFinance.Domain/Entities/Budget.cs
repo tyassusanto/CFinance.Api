@@ -22,6 +22,16 @@ public class Budget
         Amount = amount;
         CreatedAt = DateTime.UtcNow;
     }
+    public void Reduce(decimal amount)
+    {
+        if (amount <= 0)
+            throw new DomainException("Invalid amount");
+
+        if (Amount < amount)
+            throw new DomainException("Budget exceeded");
+
+        Amount -= amount;
+    }
 
     public void SetAmount(decimal userBalance, decimal amount)
     {
@@ -30,4 +40,6 @@ public class Budget
 
         Amount = amount;
     }
+
+    
 }
